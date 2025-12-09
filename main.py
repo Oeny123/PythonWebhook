@@ -54,9 +54,14 @@ async def receive_webhook(request: Request):
         print(e)
 
     payload = {"json": data}
-    try:
-        call_chain('publishfrom', ['1WwHjZoF3ozuSgmhrdSMJubKLmapdTr5V6L83C' ,'wh', 'key', payload])
-    except Exception as e:
-        print(e)
+    # print(payload)
+    key = payload['json']['entry'][0]['changes'][0]['value']['post_id']
+
+    stream = payload['json']['entry'][0]['changes'][0]['value']['from']['name'] + "_" + payload['json']['entry'][0]['id']
+    print(stream)
+    
+    call_chain('create', ['stream' , stream, False])
+    call_chain('subscribe', [stream])
+    call_chain('publishfrom', ['1WwHjZoF3ozuSgmhrdSMJubKLmapdTr5V6L83C' , stream, key, payload])
 
     return {"status": "received"}

@@ -38,7 +38,7 @@ def call_chain(method, params=[]):
         if response.status_code == 200 and response.text:
             return response.json()['result']
         else:
-            print(f"RPC error: {response.status_code} - {response.text}")
+            print(f"RPC Message: {response.text}")
               
             return response.status_code
     except requests.exceptions.RequestException as e:
