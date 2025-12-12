@@ -25,7 +25,8 @@ try:
                         'password' : value
                     }
 except Exception as e:
-    print(e)
+    # print(e)
+    pass
 
 def call_chain(method, params=[]):
     payload = json.dumps({
@@ -38,7 +39,8 @@ def call_chain(method, params=[]):
         if response.status_code == 200 and response.text:
             return response.json()['result']
         else:
-            print(f"RPC Message: {response.text}")
+            pass
+            # print(f"RPC Message: {response.text}")
               
             return response.status_code
     except requests.exceptions.RequestException as e:

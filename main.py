@@ -30,38 +30,52 @@ async def verify_webhook(
 async def receive_webhook(request: Request):
     data = await request.json()
     print("🔔 Webhook received:")
+    images = []
+    try:
+        photos = data["entry"][0]["changes"][0]["value"]['photos']
+        for p in range(len(photos)):
+            img_link = photos[p]
+            base_64 = to_base(img_link)
+            json_string = json.dumps(data)
+            json_dict = json.loads(json_string) 
+            images.append(base_64)
+            json_dict[f'image64'] =  images
+            data = json_dict
+            
+    except Exception as e:
+        print(e)
 
-    # Imahe
     try: 
         img_link = data["entry"][0]["changes"][0]["value"]["link"]
-        response = requests.get(img_link)
-        img = Image.open(BytesIO(response.content))
-        
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-        
-        buffer = BytesIO()
-        img.save(buffer, format="WEBP")
-        base_64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
+        base_64 = to_base(img_link)
         json_string = json.dumps(data)
         json_dict = json.loads(json_string) 
-        del json_dict["entry"][0]["changes"][0]["value"]["link"]
-        json_dict['image64'] = base_64
+        images.append(base_64)
+        json_dict[f'image64'] =  images
         data = json_dict
 
     except Exception as e:   
         print(e)
 
     payload = {"json": data}
-    # print(payload)
-    key = payload['json']['entry'][0]['changes'][0]['value']['post_id']
-
-    stream = payload['json']['entry'][0]['changes'][0]['value']['from']['name'] + "_" + payload['json']['entry'][0]['id']
-    print(stream)
     
+    key = payload['json']['entry'][0]['changes'][0]['value']['post_id']
+    stream = payload['json']['entry'][0]['changes'][0]['value']['from']['name'] + "_" + payload['json']['entry'][0]['id']    
     call_chain('create', ['stream' , stream, False])
     call_chain('subscribe', [stream])
     call_chain('publishfrom', ['1WwHjZoF3ozuSgmhrdSMJubKLmapdTr5V6L83C' , stream, key, payload])
 
     return {"status": "received"}
+
+
+def to_base(img_link):
+    response = requests.get(img_link)
+    img = Image.open(BytesIO(response.content))
+    
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+    
+    buffer = BytesIO()
+    img.save(buffer, format="WEBP")
+    base_64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    return base_64
